@@ -121,7 +121,7 @@ func main() {
 		}
 		if decrypted == "northpole object storage" {
 			fmt.Printf("Part 2 - %d\n", r.SectorID)
-			break
+			return
 		}
 	}
 }
