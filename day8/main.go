@@ -49,25 +49,17 @@ func (s *Screen) RotateColumn(x, amount int) {
 }
 
 func (s *Screen) RotateRow(y, amount int) {
-	// // Copy original state of column into slice
-	// originalState := []byte{}
-	// for currentX := 0; currentX < X; currentX++ {
-	// 	originalState = append(originalState, s[y][currentX])
-	// 	s[y][currentX] = '.'
-	// }
-	//
-	// // Shift slice
-	// for currentX := 0; currentX < X; currentX++ {
-	// 	shiftedIndex := (currentX + amount) % X
-	// 	s[y][shiftedIndex] = originalState[currentX]
-	// }
+	// Copy original state of column into slice
+	originalState := []byte{}
+	for currentX := 0; currentX < X; currentX++ {
+		originalState = append(originalState, s[y][currentX])
+		s[y][currentX] = '.'
+	}
 
-	for i := 0; i < amount; i++ {
-		// x, s := s[X-1], s[0:X-1]
-		// s = append(s, x)
-		x := s[y][X-1]
-		copy(s[y][i+1:], s[y][i:])
-		s[y][i] = x
+	// Shift slice
+	for currentX := 0; currentX < X; currentX++ {
+		shiftedIndex := (currentX + amount) % X
+		s[y][shiftedIndex] = originalState[currentX]
 	}
 }
 
