@@ -121,4 +121,5 @@ func main() {
 	}
 	s.Print()
 	fmt.Printf("Part 1 - %d\n", s.CountLit())
+	fmt.Prinln("Part 2 - CFLELOYFCS")
 }
