@@ -34,32 +34,23 @@ func (s *Screen) Rect(a, b int) {
 }
 
 func (s *Screen) RotateColumn(x, amount int) {
-	// Copy original state of column into slice
-	originalState := []byte{}
-	for currentY := 0; currentY < Y; currentY++ {
-		originalState = append(originalState, s[currentY][x])
-		s[currentY][x] = '.'
-	}
-
-	// Shift slice
-	for currentY := 0; currentY < Y; currentY++ {
-		shiftedIndex := (currentY + amount) % Y
-		s[shiftedIndex][x] = originalState[currentY]
+	for a := 0; a < amount; a++ {
+		// Shift down once
+		// Need to start from bottom so that it doesn't overwrite existing values
+		t := s[Y-1][x]
+		for i := Y - 1; i >= 1; i-- {
+			s[i][x] = s[i-1][x]
+		}
+		s[0][x] = t
 	}
 }
 
 func (s *Screen) RotateRow(y, amount int) {
-	// Copy original state of column into slice
-	originalState := []byte{}
-	for currentX := 0; currentX < X; currentX++ {
-		originalState = append(originalState, s[y][currentX])
-		s[y][currentX] = '.'
-	}
-
-	// Shift slice
-	for currentX := 0; currentX < X; currentX++ {
-		shiftedIndex := (currentX + amount) % X
-		s[y][shiftedIndex] = originalState[currentX]
+	// Shift trick from https://github.com/golang/go/wiki/SliceTricks
+	for i := 0; i < amount; i++ {
+		x := s[y][X-1]
+		copy(s[y][1:], s[y][:])
+		s[y][0] = x
 	}
 }
 
