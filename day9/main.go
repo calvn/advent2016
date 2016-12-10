@@ -73,9 +73,13 @@ func processAll(input string) int {
 			// log.Println(markerLen)
 
 			// Create `multiple` copies of string starting from after-marker, until `numChars`
-			copies := strings.Repeat(input[i+markerLen+2:i+markerLen+2+numChars], multiple)
+			// copies := strings.Repeat(input[i+markerLen+2:i+markerLen+2+numChars], multiple)
 			// log.Println(copies)
-			resultCount += processAll(copies)
+			thisCount := processAll(input[i+markerLen+2 : i+markerLen+2+numChars])
+			for multiple != 0 {
+				resultCount += thisCount
+				multiple--
+			}
 		default:
 			resultCount++
 		}
@@ -85,7 +89,7 @@ func processAll(input string) int {
 }
 
 func main() {
-	file, err := os.Open("example_part2")
+	file, err := os.Open("data")
 	if err != nil {
 		log.Fatal(err)
 	}
