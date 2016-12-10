@@ -52,7 +52,6 @@ func processAll(input string) int {
 
 	skipCount := 0
 	for i, c := range input {
-		// fmt.Printf("c: %s | skipCount: %d\n", string(c), skipCount)
 		switch {
 		case skipCount != 0: // Skip over marker
 			skipCount--
@@ -66,15 +65,10 @@ func processAll(input string) int {
 			numChars, _ := strconv.Atoi(marker[0])
 			multiple, _ := strconv.Atoi(marker[1])
 
-			skipCount += markerLen + 1 + numChars // Length of marker + ) + the actual letters to be skipped. i is already in (.
-			// log.Printf("skipCount: %d | i: %d", skipCount, i)
-			// log.Println(input[i+5 : i+5+numChars-1])
-			// resultCount += count
-			// log.Println(markerLen)
+			// skipCount is markerLen, plus ), plus the number of letters to be skipped. i is already in ( so it's only + 1.
+			skipCount += markerLen + 1 + numChars
 
-			// Create `multiple` copies of string starting from after-marker, until `numChars`
-			// copies := strings.Repeat(input[i+markerLen+2:i+markerLen+2+numChars], multiple)
-			// log.Println(copies)
+			// Input is string with index (i+markerLen+2) starting from after-marker , until index + `numChars`
 			thisCount := processAll(input[i+markerLen+2 : i+markerLen+2+numChars])
 			for multiple != 0 {
 				resultCount += thisCount
