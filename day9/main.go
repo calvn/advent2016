@@ -20,36 +20,31 @@ func decompress(multiple int, input string) string {
 }
 
 func process(input string) int {
-	result := ""
-	operation := ""
+	resultCount := 0
 
-	inMarker := false
-	nonMarkerCount := 0
+	skipCount := 0
 	for i, c := range input {
 		switch {
-		case !inMarker && nonMarkerCount != 0:
-			result += string(c)
-			nonMarkerCount--
-		case c != ')' && c != '(' && inMarker:
-			operation += string(c)
-		case c == '(' && !inMarker:
-			inMarker = true
-		case c == ')' && inMarker:
-			inMarker = false
-			// Perform operation
-			op := strings.Split(operation, "x")
-			numChars, _ := strconv.Atoi(string(op[0]))
-			multiple, _ := strconv.Atoi(string(op[1]))
-			result += decompress(multiple, input[i+1:i+1+numChars])
-			nonMarkerCount = numChars
-			operation = ""
+		case skipCount != 0: // Skip over marker
+			skipCount--
+		case c == '(' && skipCount == 0:
+			markerRaw := ""
+			for idx := i + 1; input[idx] != ')'; idx++ {
+				markerRaw += string(input[idx])
+			}
+			marker := strings.Split(markerRaw, "x")
+			numChars, _ := strconv.Atoi(marker[0])
+			multiple, _ := strconv.Atoi(marker[1])
+
+			resultCount += numChars * multiple
+			skipCount += len(markerRaw) + 1 + numChars // Length of marker + ) + the actual letters to be skipped. i is already in (.
+			// log.Printf("skipCount: %d | i: %d", skipCount, i)
 		default:
-			result += string(c)
+			resultCount++
 		}
 	}
-	log.Println(result)
 
-	return len(result)
+	return resultCount
 }
 
 func main() {
