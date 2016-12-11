@@ -81,7 +81,7 @@ func (b *Bot) Eval() {
 		// Shift commands by 1
 		b.PendingCommads = b.PendingCommads[1:]
 
-		// Cleanup bot.Values, not sure if it goes here
+		// Cleanup bot.Values
 		b.Values = b.Values[:0]
 	}
 }
