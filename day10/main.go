@@ -16,9 +16,74 @@ const (
 	MIN = 17
 )
 
-type Thing struct {
-	Type  string
-	Index int
+var bots = map[int]*Bot{}
+var bins = map[int][]int{}
+
+type QueueCommand struct {
+	First struct {
+		Type  string
+		Index int
+	}
+	Second struct {
+		Type  string
+		Index int
+	}
+}
+
+type Bot struct {
+	Id             int
+	Values         []int
+	PendingCommads []QueueCommand
+}
+
+// Evaluate from PendingCommads, and recursively evaluate child bots
+func (b *Bot) Eval() {
+	if len(b.Values) < 2 {
+		return
+	}
+
+	// log.Printf("Evaluating bot: %v", b)
+
+	sort.Ints(b.Values)
+	// Check for answer
+	if b.Values[0] == MIN && b.Values[1] == MAX {
+		fmt.Printf("Part 1 - %d\n", b.Id)
+	}
+
+	if len(b.PendingCommads) > 0 {
+		// log.Printf("%v\n", b.PendingCommads[0])
+		idx1 := b.PendingCommads[0].First.Index
+		idx2 := b.PendingCommads[0].Second.Index
+
+		if _, ok := bots[idx1]; !ok {
+			bots[idx1] = &Bot{}
+		}
+		bots[idx1].Id = idx1
+
+		if _, ok := bots[idx2]; !ok {
+			bots[idx2] = &Bot{}
+		}
+		bots[idx2].Id = idx2
+
+		if b.PendingCommads[0].First.Type == "bot" {
+			bots[idx1].Values = append(bots[idx1].Values, b.Values[0])
+			bots[idx1].Eval()
+		} else {
+			bins[idx1] = append(bins[idx1], b.Values[0])
+		}
+		if b.PendingCommads[0].Second.Type == "bot" {
+			bots[idx2].Values = append(bots[idx2].Values, b.Values[1])
+			bots[idx2].Eval()
+		} else {
+			bins[idx2] = append(bins[idx2], b.Values[1])
+		}
+
+		// Shift commands by 1
+		b.PendingCommads = b.PendingCommads[1:]
+
+		// Cleanup bot.Values, not sure if it goes here
+		b.Values = b.Values[:0]
+	}
 }
 
 func main() {
@@ -37,18 +102,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	bots := map[int][]int{}
-	bins := map[int][]int{}
-
-	// Queue of pending bot commands, key is bot N, value is bots/bins to give to
-	queue := map[int][]Thing{}
-
 	for _, cmd := range instructions {
+		// log.Printf("%q\n", cmd)
+
 		// Add value to bot
 		if cmd[0] == "value" {
 			val, _ := strconv.Atoi(cmd[1])
 			botN, _ := strconv.Atoi(cmd[len(cmd)-1])
-			bots[botN] = append(bots[botN], val)
+
+			if _, ok := bots[botN]; !ok {
+				bots[botN] = &Bot{}
+			}
+
+			bots[botN].Id = botN
+			bots[botN].Values = append(bots[botN].Values, val)
+			// Evaluate commands from queue when full
+			bots[botN].Eval()
 			continue
 		}
 
@@ -59,43 +128,30 @@ func main() {
 		secondThing := cmd[10]
 		secondThingN, _ := strconv.Atoi(cmd[11])
 
-		thing1 := Thing{firstThing, firstThingN}
-		thing2 := Thing{secondThing, secondThingN}
-		queue[currentBot] = append(queue[currentBot], thing1, thing2)
-	}
-
-	for len(bots) != 0 {
-		for k, v := range bots {
-			if len(v) == 2 { // Parse through bots that has two chips
-				sort.Ints(v)
-				if v[0] == MIN && v[1] == MAX {
-					fmt.Printf("Part 1 - %d\n", k)
-				}
-
-				// If no more pending commands, done with bot[k]
-				if len(queue[k]) == 0 {
-					continue
-				}
-
-				thing1 := queue[k][0]
-				thing2 := queue[k][1]
-				if thing1.Type == "bot" { // Append low to thing 1
-					bots[thing1.Index] = append(bots[thing1.Index], v[0])
-				} else {
-					bins[thing1.Index] = append(bins[thing1.Index], v[0])
-				}
-				if thing2.Type == "bot" { // Append high to thing 2
-					bots[thing2.Index] = append(bots[thing2.Index], v[1])
-				} else {
-					bins[thing2.Index] = append(bins[thing2.Index], v[1])
-				}
-
-				// Clean up, shift queue of commands from bot N
-				queue[k] = queue[k][2:]
-				// Remove bot[k] since chips has been distributed
-				delete(bots, k)
-			}
+		if _, ok := bots[currentBot]; !ok {
+			bots[currentBot] = &Bot{}
 		}
+
+		qc := &QueueCommand{
+			First: struct {
+				Type  string
+				Index int
+			}{
+				Type:  firstThing,
+				Index: firstThingN,
+			},
+			Second: struct {
+				Type  string
+				Index int
+			}{
+				Type:  secondThing,
+				Index: secondThingN,
+			},
+		}
+
+		bots[currentBot].Id = currentBot
+		bots[currentBot].PendingCommads = append(bots[currentBot].PendingCommads, *qc)
+		bots[currentBot].Eval()
 	}
 
 	part2 := bins[0][0] * bins[1][0] * bins[2][0]
